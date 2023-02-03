@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Quickmind: An Assistant on Steroids</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div id="auth-section">
+
+    </div>
+
+    <div id="query-section">
+        <p><big>Ask me anything !</big></p>
+        <form id="query-form">
+            <textarea rows="3" id="query-input" name="query"></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="response-container" style="display: none;">
+            <p><big>Response:</big></p>
+            <p id="response"></p>
+        </div>
+        <div id="loadSpinner" style="display: none;">
+            <img src="/icons/spinner.svg" alt="loading. ..">
+        </div>
+    </div>
+
+    <script src="botScript.js"></script>
+</body>
+
+</html>
