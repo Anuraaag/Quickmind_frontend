@@ -3,26 +3,52 @@
 
 <head>
     <title>Quickmind: An Assistant on Steroids</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="botStyle.css">
 </head>
 
 <body>
 
     <div id="auth-section">
+        <div class="container">
 
+            <div id="signup-section">
+                <h3>Create a Quickmind account</h3>
+                <form id="signup-form">
+                    <input type="text" name="name" placeholder="Name" minlength="2" maxlength="192" required>
+                    <input type="email" name="email" placeholder="Email address" maxlength="256" required>
+                    <input type="password" name="password" placeholder="New password" minlength="4" maxlength="127"
+                        required>
+                    <input type="submit" value="Sign up"> <br />
+                </form>
+                <span id="toLogin">Have an account? <a href="#">Log in</a></span>
+            </div>
+
+            <div id="login-section">
+                <h3>Log in to Quickmind</h3>
+                <form id="login-form">
+                    <input type="email" name="email" placeholder="Email address" maxlength="256" required>
+                    <input type="password" name="password" placeholder="Password" minlength="4" maxlength="127"
+                        required>
+                    <!-- <a href="#">Forgotten password?</a><br /> -->
+                    <input type="submit" value="Log in"><br />
+                </form>
+                <span id="toSignup">Don't have an account? <a href="#">Sign up</a></span>
+            </div>
+
+        </div>
     </div>
 
     <div id="query-section">
-        <p><big>Ask me anything !</big></p>
+        <h3>Hi {{user}}, how may I help?</h3>
         <form id="query-form">
-            <textarea rows="3" id="query-input" name="query"></textarea>
-            <button type="submit">Submit</button>
+            <textarea rows="3" maxlength="2400" id="query-input" class="quickmind-text" name="query"></textarea><br />
+            <input id="submit-query" type="submit" value="Submit" />
         </form>
-        <div id="response-container" style="display: none;">
-            <p><big>Response:</big></p>
-            <p id="response"></p>
+        <div id="response-container">
+            <h3>Quickmind:</h3>
+            <p id="response" class="quickmind-text"></p>
         </div>
-        <div id="loadSpinner" style="display: none;">
+        <div id="loadSpinner">
             <img src="/icons/spinner.svg" alt="loading. ..">
         </div>
     </div>
