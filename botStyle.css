@@ -68,3 +68,8 @@ textarea {
 img {
     width: 5rem;
 }
+
+#submit-query {
+    margin-left: auto;
+    margin-right: auto;
+}

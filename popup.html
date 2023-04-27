@@ -18,7 +18,7 @@
                     <input type="email" name="email" placeholder="Email address" maxlength="256" required>
                     <input type="password" name="password" placeholder="New password" minlength="4" maxlength="127"
                         required>
-                    <input type="submit" value="Sign up"> <br />
+                    <input type="submit" id="signup-action" value="Sign up"> <br />
                 </form>
                 <span id="toLogin">Have an account? <a href="#">Log in</a></span>
             </div>
@@ -39,18 +39,20 @@
     </div>
 
     <div id="query-section">
-        <h3>Hi {{user}}, how may I help?</h3>
+        <h3 id="greeting-text">Hi user, how may I help?</h3>
         <form id="query-form">
             <textarea rows="3" maxlength="2400" id="query-input" class="quickmind-text" name="query"></textarea><br />
-            <input id="submit-query" type="submit" value="Submit" />
+            <input id="submit-query" type="submit" value="Ask Me" />
+            <br> <span id="free-query-balance"></span>
         </form>
         <div id="response-container">
             <h3>Quickmind:</h3>
             <p id="response" class="quickmind-text"></p>
         </div>
-        <div id="loadSpinner">
-            <img src="/icons/spinner.svg" alt="loading. ..">
-        </div>
+    </div>
+
+    <div id="loadSpinner">
+        <img src="/icons/spinner.svg" alt="loading. ..">
     </div>
 
     <script src="botScript.js"></script>

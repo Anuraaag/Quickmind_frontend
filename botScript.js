@@ -8,6 +8,12 @@ const query_input = document.getElementById("query-input");
 const response_container = document.getElementById('response-container');
 const loadSpinner = document.getElementById('loadSpinner');
 const submit_query = document.getElementById('submit-query');
+const signup_action = document.getElementById('signup-action');
+const greeting_text = document.getElementById('greeting-text');
+const free_query_balance = document.getElementById('free-query-balance');
+// const base = `https://1536-182-69-181-128.ngrok.io:5000`;
+const base = `https://s2y5wy39ma.execute-api.us-east-1.amazonaws.com`;
+// const base = `http://localhost:3002`;
 
 /** Hide login section initially */
 login_section.style.display = `none`;
@@ -17,11 +23,12 @@ loadSpinner.style.display = "none";
 /** Show query section if logged in */
 query_section.style.display = `none`;
 
+// if token not there (show register)
+// if token there (show query)
+// if token there, but doesn't work (show login)
+
 /**temp */
-signup_section.style.display = `none`;
-login_section.style.display = `none`;
-query_section.style.display = `block`;
-query_input.focus();
+signup_section.style.display = `block`;
 /**temp */
 
 
@@ -41,6 +48,10 @@ const signup_form = document.getElementById("signup-form");
 signup_form.addEventListener("submit", function (event) {
     event.preventDefault();
 
+    /** Show loading */
+    signup_action.style.display = `none`
+    loadSpinner.style.display = `block`;
+
     const formData = new FormData(signup_form);
     const data = {};
     for (const [key, value] of formData.entries())
@@ -59,18 +70,33 @@ signup_form.addEventListener("submit", function (event) {
         body: requestData
     };
 
-    fetch(`http://192.168.1.7:5000/api/auth/create-user`, requestOptions)
-        .then(response => response.json())
+    fetch(`${base}/signup`, requestOptions)
+        .then(response => {
+            return response.json();
+        })
         .then(result => {
             if (result.success) {
-                // console.log(result.payload.message);
-                /** showing querying screen */
+
+                localStorage.setItem('qm_Token', result.payload.data.jwtToken);
+                localStorage.setItem('qm_freeRequestsLimit', result.payload.data.freeRequestsLimit);
+                localStorage.setItem('qm_username', result.payload.data.username);
+
+                loadSpinner.style.display = `none`;
+
+                signup_action.style.display = `block`
                 signup_section.style.display = `none`;
                 login_section.style.display = `none`;
+
+                /** showing querying screen */
+                greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
                 query_section.style.display = `block`;
                 query_input.focus();
+                free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsLimit')}`;
+
             } else {
                 console.log(result.payload);
+                loadSpinner.style.display = `none`;
+                //show error response to user
             }
         })
         .catch(error => console.log('error', error));
@@ -96,12 +122,33 @@ login_form.addEventListener("submit", function (event) {
 
     let requestOptions = {
         method: 'POST',
+        credentials: 'include',
         headers: requestHeaders,
         body: requestData
     };
 
-    fetch(`http://192.168.1.7:5000/api/auth/log-in`, requestOptions)
-        .then(response => response.json())
+    fetch(`${base}/api/auth/log-in`, requestOptions)
+
+        .then(response => {
+
+            // // adding http-only cookie, containing jwt token, to the extension headers.
+            // console.log(response.headers.entries());
+            // const setCookieHeader = response.headers.get("Set-Cookie");
+            // if (setCookieHeader) {
+            //     const cookie = setCookieHeader.split(";")[0];
+            //     chrome.cookies.set({
+            //         url: "http://192.168.1.7:5000",
+            //         name: "jwt_token",
+            //         value: cookie,
+            //     });
+            // }
+            // else {
+            //     console.log("Set-cookie absent");
+            // }
+
+            return response.json();
+        })
+
         .then(result => {
             if (result.success) {
                 // console.log(result.payload.message);
@@ -129,7 +176,7 @@ form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     /** Show loading */
-    submit_query.style.display = `none`
+    submit_query.style.display = `none`;
     loadSpinner.style.display = `block`;
     response_container.style.display = `none`;
 
@@ -143,11 +190,13 @@ form.addEventListener("submit", async (event) => {
 
         const requestHeaders = new Headers({
             'Content-Type': 'application/json',
-            'Content-Length': requestData.length
+            'Content-Length': requestData.length,
+            'qm_Token': localStorage.getItem('qm_Token')
         });
 
         let requestOptions = {
             method: 'POST',
+            // credentials: 'include',
             headers: requestHeaders,
             body: requestData,
         };
@@ -191,89 +240,46 @@ form.addEventListener("submit", async (event) => {
         // });
         /** background communication end */
 
+        // .then(response => {
+        //     return response.json();
+        // })
+        // .then(result => {
+        //     if (result.success) {
 
-        fetch(`http://192.168.1.7:5000/api/query/make`, requestOptions)
-            .then(response => response.json())
 
+        fetch(`${base}/query`, requestOptions)
+            .then(response => {
+
+                return response.json();
+            })
             .then(result => {
-                if (result.success) {
 
-                    if (result.payload.data) {
-                        responseText = result.payload.data;
+                /** Hide loading and show response and submit button */
+                loadSpinner.style.display = `none`;
+                submit_query.style.display = `block`;
 
-                        /** Hide loading and show response and submit button */
-                        loadSpinner.style.display = `none`;
-                        response_container.style.display = `block`;
-                        submit_query.style.removeProperty(`display`);
-                        responseDiv.textContent = responseText;
-                    }
+                if (result.success && result.payload && result.payload.data) {
+                    responseText = result.payload.data;
+                    response_container.style.display = `block`;
+                    responseDiv.textContent = responseText;
+                    free_query_balance.innerText = result.payload.message;
+
+                } else if (result.payload && result.payload.message && result.payload.message === `JWT missing`) {
+                    /** redirect to login */
+                    query_section.style.display = `none`;
+                    login_section.style.display = `block`;
+
                 } else {
-                    if (result.payload.message === `JWT missing`) {
-                        //redirect to login
-                        loadSpinner.style.display = `none`;
-                        submit_query.style.removeProperty(`display`);
-                        query_section.style.display = `none`;
-                        login_section.style.display = `block`;
-                    }
-                    console.log(result.payload);
+                    //
                 }
             })
-            .catch(error => console.log('error', error));
+            .catch(error => console.log('error:', error));
     } else {
         /** Hide loading and show response and submit button */
         loadSpinner.style.display = `none`;
         response_container.style.display = `block`;
-        submit_query.style.removeProperty(`display`);
+        submit_query.style.display = `block`;
         responseText = "Your query is blank.";
         responseDiv.textContent = responseText;
     }
 });
-
-
-// "permissions": [
-//     "alarms",
-//     "notifications",
-//     "tabs",
-//     "storage",
-//     "https://api.openai.com/*"
-// ],
-
-// "background": {
-//     "service_worker": "background.js"
-// }
-
-// "content_security_policy": {
-//     "script-src": "self",
-//     "script-src-elem": "https://use.fontawesome.com/",
-//     "object-src": "self"
-// },
-
-// "content_security_policy": {
-//     "script-src-elem": "https://example.com/"
-// },
-
-
-// "content_scripts": [
-//     {
-//         "matches": [
-//             "<all_urls>"
-//         ],
-//         "js": [
-//             "https://use.fontawesome.com/9cd1c736ac.js"
-//         ]
-//     }
-// ],
-
-// "content_scripts": [
-//     {
-//         "matches": [
-//             "https://use.fontawesome.com/*"
-//         ],
-//         "js": [
-//             "botScript.js"
-//         ],
-//         "css": [
-//             "botStyle.css"
-//         ]
-//     }
-// ],
