@@ -11,26 +11,25 @@ const submit_query = document.getElementById('submit-query');
 const signup_action = document.getElementById('signup-action');
 const greeting_text = document.getElementById('greeting-text');
 const free_query_balance = document.getElementById('free-query-balance');
-// const base = `https://1536-182-69-181-128.ngrok.io:5000`;
+
 const base = `https://s2y5wy39ma.execute-api.us-east-1.amazonaws.com`;
-// const base = `http://localhost:3002`;
+const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
 
 /** Hide login section initially */
-login_section.style.display = `none`;
 response_container.style.display = "none";
 loadSpinner.style.display = "none";
 
-/** Show query section if logged in */
-query_section.style.display = `none`;
+/** Show query section if logged in (token present) - if server tells that it is expired, then rediect to login page */
+if (localStorage.getItem('qm_Token') && localStorage.getItem('qm_username')) {
+    query_section.style.display = `block`;
+    signup_section.style.display = `none`;
+    greeting_text.innerText = `Hi ${capitalize(localStorage.getItem('qm_username'))}, how may I help?`;
 
-// if token not there (show register)
-// if token there (show query)
-// if token there, but doesn't work (show login)
-
-/**temp */
-signup_section.style.display = `block`;
-/**temp */
-
+} else {
+    query_section.style.display = `none`;
+    signup_section.style.display = `block`;
+}
+login_section.style.display = `none`;
 
 toLogin.addEventListener(`click`, () => {
     signup_section.style.display = `none`;
@@ -78,7 +77,7 @@ signup_form.addEventListener("submit", function (event) {
             if (result.success) {
 
                 localStorage.setItem('qm_Token', result.payload.data.jwtToken);
-                localStorage.setItem('qm_freeRequestsLimit', result.payload.data.freeRequestsLimit);
+                localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
                 localStorage.setItem('qm_username', result.payload.data.username);
 
                 loadSpinner.style.display = `none`;
@@ -88,10 +87,10 @@ signup_form.addEventListener("submit", function (event) {
                 login_section.style.display = `none`;
 
                 /** showing querying screen */
-                greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
+                greeting_text.innerText = `Hi ${capitalize(localStorage.getItem('qm_username'))}, how may I help?`;
                 query_section.style.display = `block`;
                 query_input.focus();
-                free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsLimit')}`;
+                free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
             } else {
                 console.log(result.payload);
@@ -127,7 +126,7 @@ login_form.addEventListener("submit", function (event) {
         body: requestData
     };
 
-    fetch(`${base}/api/auth/log-in`, requestOptions)
+    fetch(`${base}/login`, requestOptions)
 
         .then(response => {
 
@@ -258,19 +257,20 @@ form.addEventListener("submit", async (event) => {
                 loadSpinner.style.display = `none`;
                 submit_query.style.display = `block`;
 
-                if (result.success && result.payload && result.payload.data) {
-                    responseText = result.payload.data;
-                    response_container.style.display = `block`;
+                if (result.success && result.payload && result.payload.data && result.payload.data.queryResponse && result.payload.data.freeRequestsBalance) {
+
+                    responseText = result.payload.data.queryResponse;
                     responseDiv.textContent = responseText;
-                    free_query_balance.innerText = result.payload.message;
+                    response_container.style.display = `block`;
+
+                    localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
+                    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
                 } else if (result.payload && result.payload.message && result.payload.message === `JWT missing`) {
                     /** redirect to login */
                     query_section.style.display = `none`;
                     login_section.style.display = `block`;
 
-                } else {
-                    //
                 }
             })
             .catch(error => console.log('error:', error));
@@ -283,3 +283,14 @@ form.addEventListener("submit", async (event) => {
         responseDiv.textContent = responseText;
     }
 });
+
+
+// /** saving input box and response box data before popup closes */
+// window.addEventListener('beforeunload', function (event) {
+//     localStorage.setItem('latest_query', query_input.value);
+// });
+
+
+// if (localStorage.getItem('latest_query')) {
+//     query_input.value = localStorage.getItem('latest_query');
+// } 
