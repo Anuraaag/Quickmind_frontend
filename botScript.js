@@ -23,7 +23,7 @@ loadSpinner.style.display = "none";
 if (localStorage.getItem('qm_Token') && localStorage.getItem('qm_username')) {
     query_section.style.display = `block`;
     signup_section.style.display = `none`;
-    greeting_text.innerText = `Hi ${capitalize(localStorage.getItem('qm_username'))}, how may I help?`;
+    greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
 
 } else {
     query_section.style.display = `none`;
@@ -78,7 +78,7 @@ signup_form.addEventListener("submit", function (event) {
 
                 localStorage.setItem('qm_Token', result.payload.data.jwtToken);
                 localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
-                localStorage.setItem('qm_username', result.payload.data.username);
+                localStorage.setItem('qm_username', capitalize(result.payload.data.username));
 
                 loadSpinner.style.display = `none`;
 
@@ -87,7 +87,7 @@ signup_form.addEventListener("submit", function (event) {
                 login_section.style.display = `none`;
 
                 /** showing querying screen */
-                greeting_text.innerText = `Hi ${capitalize(localStorage.getItem('qm_username'))}, how may I help?`;
+                greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
                 query_section.style.display = `block`;
                 query_input.focus();
                 free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
@@ -129,22 +129,6 @@ login_form.addEventListener("submit", function (event) {
     fetch(`${base}/login`, requestOptions)
 
         .then(response => {
-
-            // // adding http-only cookie, containing jwt token, to the extension headers.
-            // console.log(response.headers.entries());
-            // const setCookieHeader = response.headers.get("Set-Cookie");
-            // if (setCookieHeader) {
-            //     const cookie = setCookieHeader.split(";")[0];
-            //     chrome.cookies.set({
-            //         url: "http://192.168.1.7:5000",
-            //         name: "jwt_token",
-            //         value: cookie,
-            //     });
-            // }
-            // else {
-            //     console.log("Set-cookie absent");
-            // }
-
             return response.json();
         })
 
@@ -200,57 +184,8 @@ form.addEventListener("submit", async (event) => {
             body: requestData,
         };
 
-        /** background communication start */
-        // requestOptions.credentials = `include`;
-        // chrome.runtime.sendMessage({
-        //     requestOptions: requestOptions,
-        //     url: `http://192.168.1.7:5000/api/query/make`,
-        //     type: `query`
-        // });
-
-        // chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-        //     if (request.type === `response`) {
-        //         console.log(request.data);
-        //         const result = request.data;
-
-        //         if (result.success) {
-
-        //             if (result.payload.data) {
-        //                 responseText = result.payload.data;
-
-        //                 /** Hide loading and show response and submit button */
-        //                 loadSpinner.style.display = `none`;
-        //                 response_container.style.display = `block`;
-        //                 submit_query.style.removeProperty(`display`);
-        //                 responseDiv.textContent = responseText;
-        //             }
-        //         }
-        //         else {
-        //             if (result.payload.message === `JWT missing`) {
-        //                 //redirect to login
-        //                 loadSpinner.style.display = `none`;
-        //                 submit_query.style.removeProperty(`display`);
-        //                 query_section.style.display = `none`;
-        //                 login_section.style.display = `block`;
-        //             }
-        //             console.log(result.payload);
-        //         }
-        //     }
-        // });
-        /** background communication end */
-
-        // .then(response => {
-        //     return response.json();
-        // })
-        // .then(result => {
-        //     if (result.success) {
-
-
         fetch(`${base}/query`, requestOptions)
-            .then(response => {
-
-                return response.json();
-            })
+            .then(response => response.json())
             .then(result => {
 
                 /** Hide loading and show response and submit button */
@@ -270,7 +205,6 @@ form.addEventListener("submit", async (event) => {
                     /** redirect to login */
                     query_section.style.display = `none`;
                     login_section.style.display = `block`;
-
                 }
             })
             .catch(error => console.log('error:', error));
@@ -283,14 +217,3 @@ form.addEventListener("submit", async (event) => {
         responseDiv.textContent = responseText;
     }
 });
-
-
-// /** saving input box and response box data before popup closes */
-// window.addEventListener('beforeunload', function (event) {
-//     localStorage.setItem('latest_query', query_input.value);
-// });
-
-
-// if (localStorage.getItem('latest_query')) {
-//     query_input.value = localStorage.getItem('latest_query');
-// } 
