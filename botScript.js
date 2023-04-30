@@ -15,6 +15,7 @@ const free_query_balance = document.getElementById('free-query-balance');
 const error_signup = document.getElementById("error-signup");
 const error_login = document.getElementById("error-login");
 const error_timeout = 8000; /** milliseconds */
+const logout_button = document.getElementById("logout-button");
 
 const base = `https://s2y5wy39ma.execute-api.us-east-1.amazonaws.com`;
 const removeError = element => setTimeout(() => element.innerText = '', error_timeout);
@@ -25,10 +26,11 @@ response_container.style.display = "none";
 loadSpinner.style.display = "none";
 
 /** Show query section if logged in (token present) - if server tells that it is expired, then rediect to login page */
-if (localStorage.getItem('qm_Token') && localStorage.getItem('qm_username')) {
+if (localStorage.getItem('qm_Token') && localStorage.getItem('qm_username') && localStorage.getItem('qm_freeRequestsBalance')) {
     query_section.style.display = `block`;
     signup_section.style.display = `none`;
     greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
+    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
 } else {
     query_section.style.display = `none`;
@@ -202,6 +204,7 @@ form.addEventListener("submit", async (event) => {
     submit_query.style.display = `none`;
     loadSpinner.style.display = `block`;
     response_container.style.display = `none`;
+    logout_button.style.display = "none";
 
     /** Get the query from the form */
     if (event.target && event.target.query && event.target.query.value != "") {
@@ -231,8 +234,9 @@ form.addEventListener("submit", async (event) => {
                 /** Hide loading and show response and submit button */
                 loadSpinner.style.display = `none`;
                 submit_query.style.display = `block`;
+                logout_button.style.display = `block`;
 
-                if (result.success && result.payload && result.payload.data && result.payload.data.queryResponse && result.payload.data.freeRequestsBalance) {
+                if (result.success && result.payload && result.payload.data && result.payload.data.queryResponse && result.payload.data.freeRequestsBalance >= 0) {
 
                     responseText = result.payload.data.queryResponse;
                     responseDiv.textContent = responseText;
@@ -255,5 +259,17 @@ form.addEventListener("submit", async (event) => {
         submit_query.style.display = `block`;
         responseText = "Your query is blank.";
         responseDiv.textContent = responseText;
+        logout_button.style.display = `block`;
     }
+});
+
+
+
+/****************************************** Logging Out *****************************************/
+logout_button.addEventListener('click', () => {
+    localStorage.removeItem("qm_Token");
+    localStorage.removeItem("qm_freeRequestsBalance");
+    localStorage.removeItem("qm_username");
+    query_section.style.display = `none`;
+    login_section.style.display = `block`;
 });

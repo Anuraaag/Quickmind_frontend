@@ -22,14 +22,34 @@ input[type="submit"] {
     color: #FFFFFF;
     border: none;
     cursor: pointer;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
+
+#logout-button {
+    padding: 6px 15px;
+    font-size: 12px;
+    border-radius: 5px;
+    background-color: #f9d6d6;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 2px;
+}
+
+#free-query-balance {
+    padding: 6px 15px;
+    font-size: 12px;
+    border-radius: 5px;
+    background-color: #b4cbff;
+    margin-bottom: 2px;
+}
+
 
 #response-container {
     background-color: #f2f2f2;
     padding: 5px 10px;
     text-align: justify;
     border-radius: 5px;
+    margin: 0px 0px 15px 0px;
 }
 
 .quickmind-text {
@@ -74,9 +94,16 @@ img {
 #login-action {
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 15px;
 }
 
 #error-signup,
 #error-login {
     color: #662a2a;
+}
+
+#footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
