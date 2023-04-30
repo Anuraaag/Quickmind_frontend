@@ -75,3 +75,8 @@ img {
     margin-left: auto;
     margin-right: auto;
 }
+
+#error-signup,
+#error-login {
+    color: #662a2a;
+}

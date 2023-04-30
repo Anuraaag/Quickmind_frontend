@@ -9,11 +9,16 @@ const response_container = document.getElementById('response-container');
 const loadSpinner = document.getElementById('loadSpinner');
 const submit_query = document.getElementById('submit-query');
 const signup_action = document.getElementById('signup-action');
+const login_action = document.getElementById('login-action');
 const greeting_text = document.getElementById('greeting-text');
 const free_query_balance = document.getElementById('free-query-balance');
+const error_signup = document.getElementById("error-signup");
+const error_login = document.getElementById("error-login");
+const error_timeout = 8000; /** milliseconds */
 
 const base = `https://s2y5wy39ma.execute-api.us-east-1.amazonaws.com`;
-const capitalize = string => string.charAt(0).toUpperCase() + string.slice(1);
+const removeError = element => setTimeout(() => element.innerText = '', error_timeout);
+
 
 /** Hide login section initially */
 response_container.style.display = "none";
@@ -42,7 +47,7 @@ toSignup.addEventListener(`click`, () => {
 });
 
 
-/** Signing up */
+/******************************* Signing up *****************************************/
 const signup_form = document.getElementById("signup-form");
 signup_form.addEventListener("submit", function (event) {
     event.preventDefault();
@@ -74,38 +79,51 @@ signup_form.addEventListener("submit", function (event) {
             return response.json();
         })
         .then(result => {
-            if (result.success) {
+            if (result && result.success) {
 
-                localStorage.setItem('qm_Token', result.payload.data.jwtToken);
-                localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
-                localStorage.setItem('qm_username', capitalize(result.payload.data.username));
+                if (result.payload && result.payload.data && result.payload.data.jwtToken && result.payload.data.freeRequestsBalance && result.payload.data.username) {
+                    localStorage.setItem('qm_Token', result.payload.data.jwtToken);
+                    localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
+                    localStorage.setItem('qm_username', result.payload.data.username);
 
-                loadSpinner.style.display = `none`;
+                    signup_section.style.display = `none`;
+                    // login_section.style.display = `none`;
 
-                signup_action.style.display = `block`
-                signup_section.style.display = `none`;
-                login_section.style.display = `none`;
+                    /** showing querying screen */
+                    greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
+                    query_section.style.display = `block`;
+                    query_input.focus();
+                    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
-                /** showing querying screen */
-                greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
-                query_section.style.display = `block`;
-                query_input.focus();
-                free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+                } else { /** null data params */
+                    error_signup.innerText = `Something is off. Please try after some time or contact anuraggupta.dev@gmail.com`;
+                    removeError(error_signup);
+                }
 
-            } else {
-                console.log(result.payload);
-                loadSpinner.style.display = `none`;
-                //show error response to user
+            } else if (result && !result.success) {
+                error_signup.innerText = result.payload.message;
+                removeError(error_signup);
+                // add option to reset password
+
+            } else { /** result is null */
+                error_signup.innerText = `Something is off. Please try after some time or contact anuraggupta.dev@gmail.com`;
+                removeError(error_signup);
             }
+            signup_action.style.display = `block`;
+            loadSpinner.style.display = `none`;
         })
         .catch(error => console.log('error', error));
 });
 
 
-/** Logging in */
+/****************************************** Logging in *****************************************/
 const login_form = document.getElementById("login-form");
 login_form.addEventListener("submit", function (event) {
     event.preventDefault();
+
+    /** Show loading */
+    login_action.style.display = `none`
+    loadSpinner.style.display = `block`;
 
     const formData = new FormData(login_form);
     const data = {};
@@ -121,7 +139,7 @@ login_form.addEventListener("submit", function (event) {
 
     let requestOptions = {
         method: 'POST',
-        credentials: 'include',
+        // credentials: 'include',
         headers: requestHeaders,
         body: requestData
     };
@@ -131,24 +149,46 @@ login_form.addEventListener("submit", function (event) {
         .then(response => {
             return response.json();
         })
-
         .then(result => {
-            if (result.success) {
-                // console.log(result.payload.message);
-                /** showing querying screen */
-                signup_section.style.display = `none`;
-                login_section.style.display = `none`;
-                query_section.style.display = `block`;
-                query_input.focus();
-            } else {
-                console.log(result.payload);
+
+            if (result && result.success) {
+
+                if (result.payload && result.payload.data && result.payload.data.jwtToken && result.payload.data.freeRequestsBalance && result.payload.data.username) {
+                    localStorage.setItem('qm_Token', result.payload.data.jwtToken);
+                    localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
+                    localStorage.setItem('qm_username', result.payload.data.username);
+
+                    // signup_section.style.display = `none`;
+                    login_section.style.display = `none`;
+
+                    /** showing querying screen */
+                    greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
+                    query_section.style.display = `block`;
+                    query_input.focus();
+                    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+
+                } else { /** null data params */
+                    error_login.innerText = `Something is off. Please try after some time or contact anuraggupta.dev@gmail.com`;
+                    removeError(error_login);
+                }
+
+            } else if (result && !result.success) {
+                error_login.innerText = result.payload.message;
+                removeError(error_login);
+                // add option to reset password
+
+            } else { /** result is null */
+                error_login.innerText = `Something is off. Please try after some time or contact anuraggupta.dev@gmail.com`;
+                removeError(error_login);
             }
+            login_action.style.display = `block`;
+            loadSpinner.style.display = `none`;
         })
         .catch(error => console.log('error', error));
 });
 
 
-/** Querying */
+/****************************************** Querying *****************************************/
 const form = document.getElementById("query-form");
 const responseDiv = document.getElementById("response");
 let responseText = "";
