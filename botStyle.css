@@ -98,8 +98,10 @@ img {
 }
 
 #error-signup,
-#error-login {
+#error-login,
+#error-query {
     color: #662a2a;
+    font-size: 14px;
 }
 
 #footer {
