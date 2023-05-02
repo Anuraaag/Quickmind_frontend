@@ -111,20 +111,16 @@ signup_form.addEventListener("submit", function (event) {
                     query_input.focus();
                     free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
-                } else { /** null data params */
-                    error_signup.innerText = `Server temporarily down.`;
-                    removeError(error_signup);
-                }
+                } else /** null data params */
+                    showError(error_signup, `Server temporarily down.`);
 
-            } else if (result && !result.success) {
-                error_signup.innerText = result.payload.message;
-                removeError(error_signup);
-                // add option to reset password
 
-            } else { /** result is null */
-                error_signup.innerText = `Server temporarily down.`;
-                removeError(error_signup);
-            }
+            } else if (result && !result.success && result.payload && result.payload.message)    // add option to reset password
+                showError(error_signup, result.payload.message);
+
+            else /** result is null */
+                showError(error_signup, `Server temporarily down.`);
+
             signup_action.style.display = `block`;
             loadSpinner.style.display = `none`;
         })
@@ -178,20 +174,16 @@ login_form.addEventListener("submit", function (event) {
                     query_input.focus();
                     free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
-                } else { /** null data params */
-                    error_login.innerText = `Server temporarily down.`;
-                    removeError(error_login);
-                }
+                } else  /** null data params */
+                    showError(error_login, `Server temporarily down.`);
 
-            } else if (result && !result.success) {
-                error_login.innerText = result.payload.message;
-                removeError(error_login);
-                // add option to reset password
 
-            } else { /** result is null */
-                error_login.innerText = `Server temporarily down.`;
-                removeError(error_login);
-            }
+            } else if (result && !result.success && result.payload && result.payload.message) {    // add option to reset password
+                showError(error_login, result.payload.message);
+
+            } else /** result is null */
+                showError(error_login, `Server temporarily down.`);
+
             login_action.style.display = `block`;
             loadSpinner.style.display = `none`;
         })
@@ -258,12 +250,10 @@ form.addEventListener("submit", async (event) => {
                     /** redirect to login */
                     query_section.style.display = `none`;
                     login_section.style.display = `block`;
-                    error_login.innerText = `You have been logged out. Log in to continue`;
-                    removeError(error_login);
-                } else if (!result.success && result.payload.message) {
-                    error_query.innerText = result.payload.message;
-                    removeError(error_query);
-                }
+                    showError(error_login, `You have been logged out. Log in to continue`);
+
+                } else if (!result.success && result.payload && result.payload.message)
+                    showError(error_query, result.payload.message);
             })
             .catch(error => console.log('error:', error));
     } else {
