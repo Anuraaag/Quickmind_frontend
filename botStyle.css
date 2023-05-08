@@ -70,8 +70,10 @@ input[type="submit"] {
     line-height: 24px;
 }
 
-#toLogin,
-#toSignup {
+#signup-to-login,
+#login-to-signup,
+#verify-to-login,
+#verify-instruction {
     font-size: 1.1em;
 }
 

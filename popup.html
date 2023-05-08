@@ -20,7 +20,7 @@
                         required>
                     <input type="submit" id="signup-action" value="Sign up"> <br />
                 </form>
-                <span id="toLogin">Have an account? <a href="#">Log in</a></span>
+                <span id="signup-to-login">Have an account? <a href="#">Log in</a></span>
                 <p id="error-signup"></p>
             </div>
 
@@ -33,7 +33,7 @@
                     <!-- <a href="#">Forgotten password?</a><br /> -->
                     <input type="submit" id="login-action" value="Log in"><br />
                 </form>
-                <span id="toSignup">Don't have an account? <a href="#">Sign up</a></span>
+                <span id="login-to-signup">Don't have an account? <a href="#">Sign up</a></span>
                 <p id="error-login"></p>
             </div>
 
@@ -56,6 +56,14 @@
             <span id="free-query-balance"></span>
             <button id="logout-button">Logout</button>
         </div>
+    </div>
+
+    <div id="verify-screen">
+        <h3 id="verify-text"></h3>
+        <p id="verify-instruction">Thanks for signing up! Please check your inbox for a verification link. Once you
+            verify your email, you can
+            log in to our service.</p>
+        <span id="verify-to-login">Email verified? Proceed to <a href="#">log in</a></span>
     </div>
 
     <div id="loadSpinner">
