@@ -16,19 +16,42 @@ const free_query_balance = document.getElementById('free-query-balance');
 const error_signup = document.getElementById("error-signup");
 const error_login = document.getElementById("error-login");
 const error_query = document.getElementById("error-query");
-const error_timeout = 8000; /** milliseconds */
+const default_timeout = 8000;
 const logout_button = document.getElementById("logout-button");
 const verify_screen = document.getElementById("verify-screen");
 const verify_text = document.getElementById("verify-text");
+const premium_screen = document.getElementById("premium-screen");
+const query_to_premium = document.getElementById("query-to-premium");
+const premium_to_query = document.getElementById("premium-to-query");
+const push_notification = document.getElementById("push-notification");
+const default_response = `Please try again in some time`;
 
 const base = `https://s2y5wy39ma.execute-api.us-east-1.amazonaws.com`; /** `http://localhost:3000`; */
 
-const removeError = element => setTimeout(() => element.innerText = '', error_timeout);
+const removeError = (element, timer) => setTimeout(() => element.innerText = '', timer);
 const unsetLocalStorage = keys => keys.forEach(key => localStorage.removeItem(key));
-const showError = (element, error) => {
+const showError = (element, error, timer = default_timeout) => {
     element.innerText = error;
-    removeError(element);
+    removeError(element, timer);
 }
+const logout = () => {
+    unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance", "qm_username"]);
+    query_section.style.display = `none`;
+}
+const notify_user = (notification) => {
+    if (notification && notification.message)
+        showError(push_notification, notification.message, 12000);
+}
+const error_array = [
+    "Enter valid credentials",
+    "Please verify your email ID!",
+    "Invalid data",
+    "Enter a valid name",
+    "Enter a valid email",
+    "Password must be at least 5 characters",
+    "Account with this email already exists"
+];
+
 
 /** Initial state */
 loadSpinner.style.display = `none`;
@@ -36,12 +59,13 @@ verify_screen.style.display = `none`;
 query_section.style.display = `none`;
 signup_section.style.display = `none`;
 login_section.style.display = `none`;
+premium_screen.style.display = `none`;
 
 if (localStorage.getItem('qm_Token') && localStorage.getItem('qm_username') && localStorage.getItem('qm_freeRequestsBalance')) {
     query_section.style.display = `block`;
     response_container.style.display = "none";
     greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
-    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+    free_query_balance.innerText = `Free queries left for the month: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
 } else if (localStorage.getItem('qm_username') && localStorage.getItem('qm_verify')) {
     verify_text.innerText = `Hi ${localStorage.getItem('qm_username')}`;
@@ -70,14 +94,19 @@ login_to_signup.addEventListener(`click`, () => {
     signup_section.style.display = `block`;
 });
 
+query_to_premium.addEventListener(`click`, () => {
+    query_section.style.display = `none`;
+    premium_screen.style.display = `block`;
+});
+
+premium_to_query.addEventListener(`click`, () => {
+    query_section.style.display = `block`;
+    premium_screen.style.display = `none`;
+});
+
 
 /********************************* Logging Out *****************************************/
-logout_button.addEventListener('click', () => {
-    unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance", "qm_username"]);
-    query_section.style.display = `none`;
-    login_section.style.display = `none`;
-    signup_section.style.display = `block`;
-});
+logout_button.addEventListener('click', () => logout());
 
 
 /******************************* Signing up *****************************************/
@@ -112,28 +141,40 @@ signup_form.addEventListener("submit", function (event) {
             return response.json();
         })
         .then(result => {
-            if (result && result.success) {
+            if (result) {
 
-                if (result.payload && result.payload.data && result.payload.data.username) {
-                    unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance"]); /** kind of an unnecessary forced reset */
-                    localStorage.setItem('qm_username', result.payload.data.username);
-                    localStorage.setItem('qm_verify', false);
+                if (result.success) {
 
-                    signup_section.style.display = `none`;
+                    if (result.payload && result.payload.data && result.payload.data.username) {
+                        unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance"]); /** force reset */
+                        localStorage.setItem('qm_username', result.payload.data.username);
+                        localStorage.setItem('qm_verify', false);
 
-                    /** showing verification screen */
-                    verify_screen.style.display = "block";
-                    verify_text.innerText = `Hi ${localStorage.getItem('qm_username')}`;
+                        signup_section.style.display = `none`;
 
-                } else /** null data params */
-                    showError(error_signup, `Server temporarily down.`);
+                        /** showing verification screen */
+                        verify_screen.style.display = "block";
+                        verify_text.innerText = `Hi ${localStorage.getItem('qm_username')}`;
 
+                    } else /** null data params */
+                        showError(error_signup, default_response);
 
-            } else if (result && !result.success && result.payload && result.payload.message)    // add option to reset password
-                showError(error_signup, result.payload.message);
+                    notify_user(result.pushNotification);
 
-            else /** result is null */
-                showError(error_signup, `Server temporarily down.`);
+                } else if (result.payload && result.payload.message) {    // add option to reset password
+
+                    if (error_array.includes(result.payload.message))
+                        showError(error_signup, result.payload.message);
+
+                    else {
+                        showError(error_signup, default_response);
+                        console.log("Error: ", result.payload.message);
+                    }
+                } else
+                    showError(error_signup, default_response);
+
+            } else /** result is null */
+                showError(error_signup, default_response);
 
             signup_action.style.display = `block`;
             loadSpinner.style.display = `none`;
@@ -176,43 +217,55 @@ login_form.addEventListener("submit", function (event) {
             return response.json();
         })
         .then(result => {
+            if (result) {
 
-            if (result && result.success) {
+                if (result.success) {
+                    if (result.payload && result.payload.data && result.payload.data.jwtToken && typeof result.payload.data.freeRequestsBalance === 'number' && result.payload.data.freeRequestsBalance >= 0 && result.payload.data.username) {
 
-                if (result.payload && result.payload.data && result.payload.data.jwtToken && typeof result.payload.data.freeRequestsBalance === 'number' && result.payload.data.freeRequestsBalance >= 0 && result.payload.data.username) {
+                        unsetLocalStorage(["qm_verify"]);
+                        localStorage.setItem('qm_Token', result.payload.data.jwtToken);
+                        localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
+                        localStorage.setItem('qm_username', result.payload.data.username);
+                        login_section.style.display = `none`;
 
-                    unsetLocalStorage(["qm_verify"]); /** kind of an unnecessary forced reset */
-                    localStorage.setItem('qm_Token', result.payload.data.jwtToken);
-                    localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
-                    localStorage.setItem('qm_username', result.payload.data.username);
-                    login_section.style.display = `none`;
-                    // remove verify local variable
+                        /** showing querying screen */
+                        query_section.style.display = `block`;
+                        greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
+                        query_input.focus();
+                        free_query_balance.innerText = `Free queries left for the month: ${localStorage.getItem('qm_freeRequestsBalance')}`;
 
-                    /** showing querying screen */
-                    query_section.style.display = `block`;
-                    greeting_text.innerText = `Hi ${localStorage.getItem('qm_username')}, how may I help?`;
-                    query_input.focus();
-                    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+                    } else if (result.payload && result.payload.data && result.payload.data.username && typeof result.payload.data.verified === `boolean`) {
+                        /** login failed */
+                        unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance"]); /** kind of an unnecessary forced reset */
+                        localStorage.setItem('qm_username', result.payload.data.username);
+                        localStorage.setItem('qm_verify', result.payload.data.verified);
+                        login_section.style.display = `none`;
 
-                } else if (result.payload && result.payload.data && result.payload.data.username && typeof result.payload.data.verified === `boolean`) {
-                    /** login failed */
-                    unsetLocalStorage(["qm_Token", "qm_freeRequestsBalance"]); /** kind of an unnecessary forced reset */
-                    localStorage.setItem('qm_username', result.payload.data.username);
-                    localStorage.setItem('qm_verify', result.payload.data.verified);
-                    login_section.style.display = `none`;
+                        /** showing verification screen */
+                        verify_screen.style.display = `block`;
+                        verify_text.innerText = `Hi ${localStorage.getItem('qm_username')}`;
 
-                    /** showing verification screen */
-                    verify_screen.style.display = `block`;
-                    verify_text.innerText = `Hi ${localStorage.getItem('qm_username')}`;
+                    } else { /** null data params */
+                        showError(error_login, default_response);
+                        console.log("Error: ", result);
+                    }
 
-                } else  /** null data params */
-                    showError(error_login, `Server temporarily down.`);
+                    notify_user(result.pushNotification);
 
-            } else if (result && !result.success && result.payload && result.payload.message) {    // add option to reset password
-                showError(error_login, result.payload.message);
+                } else if (result.payload && result.payload.message) {    // add option to reset password
+
+                    if (error_array.includes(result.payload.message))
+                        showError(error_login, result.payload.message);
+
+                    else {
+                        showError(error_login, default_response);
+                        console.log("Error: ", result.payload.message);
+                    }
+                } else
+                    showError(error_login, default_response);
 
             } else /** result is null */
-                showError(error_login, `Server temporarily down.`);
+                showError(error_login, default_response);
 
             login_action.style.display = `block`;
             loadSpinner.style.display = `none`;
@@ -267,23 +320,44 @@ form.addEventListener("submit", async (event) => {
                 submit_query.style.display = `block`;
                 logout_button.style.display = `block`;
 
-                if (result.success && result.payload && result.payload.data && result.payload.data.queryResponse && result.payload.data.freeRequestsBalance >= 0) {
+                if (result) {
 
-                    responseText = result.payload.data.queryResponse;
-                    responseDiv.textContent = responseText;
-                    response_container.style.display = `block`;
+                    if (result.success) {
+                        if (result.payload && result.payload.data && result.payload.data.queryResponse && result.payload.data.freeRequestsBalance >= 0) {
+                            responseText = result.payload.data.queryResponse;
+                            responseDiv.textContent = responseText;
+                            response_container.style.display = `block`;
 
-                    localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
-                    free_query_balance.innerText = `Free queries left: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+                            localStorage.setItem('qm_freeRequestsBalance', result.payload.data.freeRequestsBalance);
+                            free_query_balance.innerText = `Free queries left for the month: ${localStorage.getItem('qm_freeRequestsBalance')}`;
+                        } else {
+                            showError(error_query, default_response);
+                            console.log("Error: ", result.payload);
+                        }
 
-                } else if (result.payload && result.payload.message && result.payload.message === `JWT missing`) {
-                    /** redirect to login */
-                    query_section.style.display = `none`;
-                    login_section.style.display = `block`;
-                    showError(error_login, `You have been logged out. Log in to continue`);
+                        notify_user(result.pushNotification);
 
-                } else if (!result.success && result.payload && result.payload.message)
-                    showError(error_query, result.payload.message);
+                    } else {  /** result.success is false */
+                        if (result.payload && result.payload.message) {
+
+                            if (result.payload.message === `JWT missing`) {
+                                logout();
+                                query_section.style.display = `none`;
+                                login_section.style.display = `block`;
+                                showError(error_login, `You have been logged out. Log in to continue`);
+
+                            } else if (result.payload.message === `logout`) {
+                                logout();
+                                login_section.style.display = `none`;
+                                signup_section.style.display = `block`;
+                            } else
+                                showError(error_query, default_response);
+
+                            console.log("Error: ", result.payload.message);
+                        } else
+                            showError(error_query, default_response);
+                    }
+                }
             })
             .catch(error => console.log('error:', error));
     } else {

@@ -14,10 +14,11 @@
             <div id="signup-section">
                 <h3>Create a Quickmind account</h3>
                 <form id="signup-form">
-                    <input type="text" name="name" placeholder="Name" minlength="2" maxlength="192" required>
-                    <input type="email" name="email" placeholder="Email address" maxlength="256" required>
-                    <input type="password" name="password" placeholder="New password" minlength="4" maxlength="127"
+                    <input type="text" name="name" placeholder="What is your name?" minlength="2" maxlength="192"
                         required>
+                    <input type="email" name="email" placeholder="Enter your email address" maxlength="256" required>
+                    <input type="password" name="password" placeholder="Enter a strong password" minlength="4"
+                        maxlength="127" required>
                     <input type="submit" id="signup-action" value="Sign up"> <br />
                 </form>
                 <span id="signup-to-login">Have an account? <a href="#">Log in</a></span>
@@ -43,7 +44,7 @@
     <div id="query-section">
         <h3 id="greeting-text">Hi user, how may I help?</h3>
         <form id="query-form">
-            <textarea rows="3" maxlength="2400" id="query-input" class="quickmind-text" name="query"></textarea><br />
+            <textarea rows="3" maxlength="1075" id="query-input" class="quickmind-text" name="query"></textarea><br />
             <input id="submit-query" type="submit" value="Ask Me" />
         </form>
         <div id="response-container">
@@ -53,17 +54,26 @@
         <p id="error-query"></p>
         <hr>
         <div id="footer">
-            <span id="free-query-balance"></span>
-            <button id="logout-button">Logout</button>
+            <span class="big-item" id="free-query-balance"></span>
+            <button class="small-item" id="query-to-premium">Premium</button>
+            <button class="small-item" id="logout-button">Logout</button>
         </div>
     </div>
 
     <div id="verify-screen">
         <h3 id="verify-text"></h3>
         <p id="verify-instruction">Thanks for signing up! Please check your inbox for a verification link. Once you
-            verify your email, you can
-            log in to our service.</p>
+            verify your email, you can log in to Quickmind.</p>
         <span id="verify-to-login">Email verified? Proceed to <a href="#">log in</a></span>
+    </div>
+
+    <div id="premium-screen">
+        <h3 id="premium-text">Coming up, super soon!</h3>
+        <button id="premium-to-query">Back</button>
+    </div>
+
+    <div id="notification-section">
+        <p id="push-notification"></p>
     </div>
 
     <div id="loadSpinner">

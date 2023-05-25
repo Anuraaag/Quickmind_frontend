@@ -25,24 +25,36 @@ input[type="submit"] {
     margin-bottom: 5px;
 }
 
-#logout-button {
+#logout-button,
+#free-query-balance,
+#query-to-premium,
+#premium-to-query {
     padding: 6px 15px;
     font-size: 12px;
     border-radius: 5px;
-    background-color: #f9d6d6;
-    border: none;
-    cursor: pointer;
     margin-bottom: 2px;
+    cursor: pointer;
+    border: none;
 }
 
 #free-query-balance {
-    padding: 6px 15px;
-    font-size: 12px;
-    border-radius: 5px;
     background-color: #b4cbff;
-    margin-bottom: 2px;
 }
 
+#query-to-premium {
+    background-color: #e7d385;
+}
+
+#logout-button {
+    background-color: #f9d6d6;
+}
+
+#logout-button:hover,
+#query-to-premium:hover,
+#premium-to-query:hover,
+input[type="submit"]:hover {
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+}
 
 #response-container {
     background-color: #f2f2f2;
@@ -106,8 +118,43 @@ img {
     font-size: 14px;
 }
 
+/** Footer CSS start */
 #footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+
+.big-item {
+    flex: 2;
+    margin: 0px 5px;
+}
+
+.small-item {
+    flex: 1;
+    margin: 0px 5px;
+}
+
+/** Footer CSS end*/
+
+
+/** Notification CSS start */
+#push-notification {
+    animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/** Notification CSS end */
